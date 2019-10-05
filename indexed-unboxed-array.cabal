@@ -1,0 +1,25 @@
+cabal-version: 2.2
+name: indexed-unboxed-array
+version: 0.1.0.0
+-- synopsis:
+-- description:
+bug-reports: https://github.com/andrewthad/indexed-unboxed-array/issues
+license: BSD-3-Clause
+license-file: LICENSE
+author: Andrew Martin
+maintainer: andrew.thaddeus@gmail.com
+copyright: 2019 Andrew Martin
+category: Data
+extra-source-files: CHANGELOG.md
+
+library
+  exposed-modules: Vector.Unboxed
+  signatures:
+    Element
+    Array
+  build-depends:
+    , base >=4.12.0.0 && <5
+    , natural-arithmetic
+  hs-source-dirs: src
+  default-language: Haskell2010
+  ghc-options: -O2 -Wall
