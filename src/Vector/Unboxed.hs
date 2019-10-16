@@ -25,12 +25,17 @@ module Vector.Unboxed
   , copy
   , copyMutable
   , set
+    -- Resize
+  , shrink
     -- Freeze
   , unsafeFreeze
     -- Equality
   , equals
     -- Substitution
   , substitute
+    -- Conversion
+  , expose
+  , unsafeCast
   ) where
 
 import Prelude hiding (read)
@@ -133,6 +138,17 @@ copyMutable Lte Lte (MutableVector dst) (Nat (I# doff)) (MutableVector src) (Nat
   (\s0 -> (# E.copyMutable# (A.unliftMutable dst) doff (A.unliftMutable src) soff len s0, () #)
   )
 
+-- | Shrink the argument vector, possibly in-place. The argument vector
+-- must not be reused after being passed to this function.
+shrink ::
+     (m <= n)
+  -> Nat m
+  -> MutableVector s n -- ^ Vector to shrink
+  -> ST s (MutableVector s m)
+shrink Lte (Nat (I# sz)) (MutableVector x) = ST
+  (\s0 -> (# E.shrink# (A.unliftMutable x) sz s0, MutableVector x #)
+  )
+
 -- | Freeze the mutable vector. The argument must not be reused after
 -- this function is called on it. 
 unsafeFreeze ::
@@ -165,3 +181,12 @@ equals (Nat n) (Vector x) (Vector y) = go (n - 1)
       1# -> go (ix - 1)
       _ -> False
     else True
+
+expose :: Vector n -> A
+expose (Vector x) = x
+
+-- | This is very unsafe. It is useful for interoperation with libraries
+-- that return @ByteArray@ or @PrimArray@ and provide untyped (written in
+-- the documentation rather than in types) guarantees about their sizes.
+unsafeCast :: A -> Vector n
+unsafeCast = Vector

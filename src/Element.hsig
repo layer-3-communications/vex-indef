@@ -6,7 +6,8 @@
 signature Element where
 
 import Data.Kind (Type)
-import GHC.Exts (State#,Int#,MutableByteArray#,ByteArray#,TYPE,RuntimeRep)
+import GHC.Exts (State#,Int#,MutableByteArray#,ByteArray#)
+import GHC.Exts (TYPE,RuntimeRep)
 import Array (A#,M#)
 
 data T
@@ -25,6 +26,8 @@ uninitialized# :: Int# -> State# s -> (# State# s, M# s #)
 initialized# :: Int# -> T# -> State# s -> (# State# s, M# s #)
 copy# :: M# s -> Int# -> A# -> Int# -> Int# -> State# s -> State# s
 copyMutable# :: M# s -> Int# -> M# s -> Int# -> Int# -> State# s -> State# s
+
+shrink# :: M# s -> Int# -> State# s -> State# s
 
 -- This is here for weird reasons. It may be removed from
 -- the signature later.
