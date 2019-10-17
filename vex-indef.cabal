@@ -1,9 +1,9 @@
 cabal-version: 2.2
-name: indexed-unboxed-array
+name: vex-indef
 version: 0.1.0.0
 -- synopsis:
 -- description:
-bug-reports: https://github.com/andrewthad/indexed-unboxed-array/issues
+bug-reports: https://github.com/andrewthad/vex-indef/issues
 license: BSD-3-Clause
 license-file: LICENSE
 author: Andrew Martin

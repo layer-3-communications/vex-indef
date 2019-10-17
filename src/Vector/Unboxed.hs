@@ -1,10 +1,12 @@
-{-# language TypeOperators #-}
 {-# language BangPatterns #-}
 {-# language DataKinds #-}
 {-# language ExplicitNamespaces #-}
 {-# language GADTSyntax #-}
 {-# language KindSignatures #-}
 {-# language MagicHash #-}
+{-# language ScopedTypeVariables #-}
+{-# language TypeApplications #-}
+{-# language TypeOperators #-}
 {-# language UnboxedTuples #-}
 
 -- The only operatations defined in this module are those
@@ -45,18 +47,21 @@ import Array (A,M,unsafeFreeze#)
 import GHC.Exts (Int(I#))
 import GHC.ST (ST(ST))
 import Data.Kind (Type)
-import GHC.TypeNats (type (+))
+import GHC.TypeNats (KnownNat,type (+))
 import Arithmetic.Unsafe (type (<=)(Lte))
 import Arithmetic.Unsafe (Nat(Nat),type (<)(Lt),type (:=:)(Eq))
+import Arithmetic.Types (Fin(Fin))
 
 import qualified GHC.TypeNats as GHC
 import qualified Element as E
 import qualified Array as A
+import qualified Arithmetic.Nat as Nat
+import qualified Arithmetic.Fin as Fin
 
 newtype Vector :: GHC.Nat -> Type where
   Vector :: A -> Vector n
 
-data MutableVector :: Type -> GHC.Nat -> Type where
+newtype MutableVector :: Type -> GHC.Nat -> Type where
   MutableVector :: M s -> MutableVector s n
 
 uninitialized :: Nat n -> ST s (MutableVector s n)
@@ -146,7 +151,8 @@ shrink ::
   -> MutableVector s n -- ^ Vector to shrink
   -> ST s (MutableVector s m)
 shrink Lte (Nat (I# sz)) (MutableVector x) = ST
-  (\s0 -> (# E.shrink# (A.unliftMutable x) sz s0, MutableVector x #)
+  (\s0 -> case E.shrink# (A.unliftMutable x) sz s0 of
+    (# s1, y #) -> (# s1, MutableVector (A.liftMutable y) #)
   )
 
 -- | Freeze the mutable vector. The argument must not be reused after
@@ -190,3 +196,11 @@ expose (Vector x) = x
 -- the documentation rather than in types) guarantees about their sizes.
 unsafeCast :: A -> Vector n
 unsafeCast = Vector
+
+instance KnownNat n => Show (Vector n) where
+  showsPrec !_ !v s0 = case Nat.demote sz of
+    0 -> '[':']':s0
+    _ -> '[': Fin.descend sz (']':s0) (\(Fin ix lt) s -> E.shows (index lt v ix) s)
+    where
+    sz = Nat.constant @n
+
