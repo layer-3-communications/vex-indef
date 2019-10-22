@@ -28,9 +28,10 @@ copyMutable# :: M# s -> Int# -> M# s -> Int# -> Int# -> State# s -> State# s
 
 shrink# :: M# s -> Int# -> State# s -> (# State# s, M# s #)
 
--- This is here for weird reasons. It may be removed from
+-- These are here for weird reasons. It may be removed from
 -- the signature later.
 eq# :: T# -> T# -> Int#
+neq# :: T# -> T# -> Int#
 
 -- Having a Show instance is really useful for debugging stuff.
 shows :: T -> String -> String
