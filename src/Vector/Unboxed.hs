@@ -37,7 +37,9 @@ module Vector.Unboxed
   , substitute
     -- Conversion
   , expose
+  , exposeMutable
   , unsafeCast
+  , unsafeCastMutable
   ) where
 
 import Prelude hiding (read)
@@ -191,11 +193,17 @@ equals (Nat n) (Vector x) (Vector y) = go (n - 1)
 expose :: Vector n -> A
 expose (Vector x) = x
 
+exposeMutable :: MutableVector s n -> M s
+exposeMutable (MutableVector x) = x
+
 -- | This is very unsafe. It is useful for interoperation with libraries
 -- that return @ByteArray@ or @PrimArray@ and provide untyped (written in
 -- the documentation rather than in types) guarantees about their sizes.
 unsafeCast :: A -> Vector n
 unsafeCast = Vector
+
+unsafeCastMutable :: M s -> MutableVector s n
+unsafeCastMutable = MutableVector
 
 instance KnownNat n => Show (Vector n) where
   showsPrec !_ !v s0 = case Nat.demote sz of
