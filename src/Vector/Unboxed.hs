@@ -208,7 +208,7 @@ unsafeCastMutable = MutableVector
 instance KnownNat n => Show (Vector n) where
   showsPrec !_ !v s0 = case Nat.demote sz of
     0 -> '[':']':s0
-    _ -> '[': Fin.descend sz (']':s0) (\(Fin ix lt) s -> E.shows (index lt v ix) s)
+    _ -> '[': Fin.descend sz (']':s0) (\(Fin ix lt) s -> E.shows (index lt v ix) (',':s))
     where
     sz = Nat.constant @n
 
