@@ -212,3 +212,5 @@ instance KnownNat n => Show (Vector n) where
     where
     sz = Nat.constant @n
 
+instance KnownNat n => Eq (Vector n) where
+  (==) = equals (Nat.constant @n)
