@@ -4,6 +4,7 @@
 {-# language GADTSyntax #-}
 {-# language KindSignatures #-}
 {-# language MagicHash #-}
+{-# language RankNTypes #-}
 {-# language ScopedTypeVariables #-}
 {-# language TypeApplications #-}
 {-# language TypeOperators #-}
@@ -40,6 +41,8 @@ module Vector.Unboxed
   , exposeMutable
   , unsafeCast
   , unsafeCastMutable
+    -- Specialized runST
+  , runST
   ) where
 
 import Prelude hiding (read)
@@ -54,6 +57,7 @@ import Arithmetic.Unsafe (type (<=)(Lte))
 import Arithmetic.Unsafe (Nat(Nat),type (<)(Lt),type (:=:)(Eq))
 import Arithmetic.Types (Fin(Fin))
 
+import qualified GHC.Exts as Exts
 import qualified GHC.TypeNats as GHC
 import qualified Element as E
 import qualified Array as A
@@ -204,6 +208,11 @@ unsafeCast = Vector
 
 unsafeCastMutable :: M s -> MutableVector s n
 unsafeCastMutable = MutableVector
+
+runST :: (forall s. ST s (Vector n)) -> Vector n
+{-# inline runST #-}
+runST f = Vector
+  (Exts.runRW# (\s0 -> case f of { ST g -> case g s0 of { (# _, Vector r #) -> r }}))
 
 instance KnownNat n => Show (Vector n) where
   showsPrec !_ !v s0 = case Nat.demote sz of
