@@ -212,7 +212,7 @@ unsafeCastMutable = MutableVector
 runST :: (forall s. ST s (Vector n)) -> Vector n
 {-# inline runST #-}
 runST f = Vector
-  (Exts.runRW# (\s0 -> case f of { ST g -> case g s0 of { (# _, Vector r #) -> r }}))
+  (A.lift (Exts.runRW# (\s0 -> case f of { ST g -> case g s0 of { (# _, Vector r #) -> A.unlift r }})))
 
 instance KnownNat n => Show (Vector n) where
   showsPrec !_ !v s0 = case Nat.demote sz of
