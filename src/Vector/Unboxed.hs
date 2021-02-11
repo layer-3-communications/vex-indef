@@ -132,6 +132,7 @@ copy ::
   -> Nat soff
   -> Nat n
   -> ST s ()
+{-# inline copy #-}
 copy Lte Lte (MutableVector dst) (Nat (I# doff)) (Vector src) (Nat (I# soff)) (Nat (I# len)) = ST
   (\s0 -> (# E.copy# (A.unliftMutable dst) doff (A.unlift src) soff len s0, () #)
   )
@@ -145,6 +146,7 @@ copyMutable ::
   -> Nat soff
   -> Nat n
   -> ST s ()
+{-# inline copyMutable #-}
 copyMutable Lte Lte (MutableVector dst) (Nat (I# doff)) (MutableVector src) (Nat (I# soff)) (Nat (I# len)) = ST
   (\s0 -> (# E.copyMutable# (A.unliftMutable dst) doff (A.unliftMutable src) soff len s0, () #)
   )
@@ -156,6 +158,7 @@ shrink ::
   -> Nat m
   -> MutableVector s n -- ^ Vector to shrink
   -> ST s (MutableVector s m)
+{-# inline shrink #-}
 shrink Lte (Nat (I# sz)) (MutableVector x) = ST
   (\s0 -> case E.shrink# (A.unliftMutable x) sz s0 of
     (# s1, y #) -> (# s1, MutableVector (A.liftMutable y) #)
@@ -186,6 +189,7 @@ substitute Eq (Vector x) = Vector x
 -- Note: The above note is out of date. Fast equality checks may be reinstated
 -- in the future.
 equals :: Nat n -> Vector n -> Vector n -> Bool
+{-# inline equals #-}
 equals (Nat n) (Vector x) (Vector y) = go (n - 1)
   where
   go !ix@(I# ix#) = if ix >= 0
@@ -195,18 +199,22 @@ equals (Nat n) (Vector x) (Vector y) = go (n - 1)
     else True
 
 expose :: Vector n -> A
+{-# inline expose #-}
 expose (Vector x) = x
 
 exposeMutable :: MutableVector s n -> M s
+{-# inline exposeMutable #-}
 exposeMutable (MutableVector x) = x
 
 -- | This is very unsafe. It is useful for interoperation with libraries
 -- that return @ByteArray@ or @PrimArray@ and provide untyped (written in
 -- the documentation rather than in types) guarantees about their sizes.
 unsafeCast :: A -> Vector n
+{-# inline unsafeCast #-}
 unsafeCast = Vector
 
 unsafeCastMutable :: M s -> MutableVector s n
+{-# inline unsafeCastMutable #-}
 unsafeCastMutable = MutableVector
 
 runST :: (forall s. ST s (Vector n)) -> Vector n
