@@ -10,10 +10,10 @@
 {-# language TypeOperators #-}
 {-# language UnboxedTuples #-}
 
--- The only operatations defined in this module are those
+-- Many operatations defined in this module are those
 -- that are considered primitive. That is, they cannot be
 -- defined in terms of other operations on length-indexed
--- vectors.
+-- vectors. Others are non-primitive.
 module Vector.Unboxed
   ( -- Types
     Vector
@@ -43,6 +43,8 @@ module Vector.Unboxed
   , unsafeCastMutable
     -- Specialized runST
   , runST
+    -- Conversion
+  , fromListN
   ) where
 
 import Prelude hiding (read)
@@ -56,7 +58,10 @@ import GHC.TypeNats (KnownNat,type (+))
 import Arithmetic.Unsafe (type (<=)(Lte))
 import Arithmetic.Unsafe (Nat(Nat),type (<)(Lt),type (:=:)(Eq))
 import Arithmetic.Types (Fin(Fin))
+import Control.Monad.Trans.Maybe (MaybeT(MaybeT),runMaybeT)
+import Control.Monad.Trans.Class (lift)
 
+import qualified Control.Monad.ST
 import qualified GHC.Exts as Exts
 import qualified GHC.TypeNats as GHC
 import qualified Element as E
@@ -221,6 +226,19 @@ runST :: (forall s. ST s (Vector n)) -> Vector n
 {-# inline runST #-}
 runST f = Vector
   (A.lift (Exts.runRW# (\s0 -> case f of { ST g -> case g s0 of { (# _, Vector r #) -> A.unlift r }})))
+
+fromListN :: Nat n -> [T] -> Maybe (Vector n)
+fromListN !n xs0 = Control.Monad.ST.runST $ runMaybeT $ do
+  marr <- lift (uninitialized n)
+  _ <- Fin.ascendM n xs0
+    (\(Fin ix lt) xs -> case xs of
+      [] -> MaybeT (pure Nothing)
+      y : ys -> do
+        lift (write lt marr ix y)
+        pure ys
+    )
+  output <- lift (unsafeFreeze marr)
+  pure output
 
 instance KnownNat n => Show (Vector n) where
   showsPrec !_ !v s0 = case Nat.demote sz of
