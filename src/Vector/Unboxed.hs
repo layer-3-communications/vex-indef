@@ -20,6 +20,7 @@ module Vector.Unboxed
   , MutableVector
     -- Create
   , uninitialized
+  , initialized
     -- Index
   , index
   , read
@@ -79,6 +80,13 @@ uninitialized :: Nat n -> ST s (MutableVector s n)
 {-# inline uninitialized #-}
 uninitialized (Nat (I# n)) = ST
   ( \s0 -> case E.uninitialized# n s0 of
+    (# s1, arr #) -> (# s1, MutableVector (A.liftMutable arr) #)
+  )
+
+initialized :: Nat n -> T -> ST s (MutableVector s n)
+{-# inline initialized #-}
+initialized (Nat (I# n)) a = ST
+  ( \s0 -> case E.initialized# n (E.unlift a) s0 of
     (# s1, arr #) -> (# s1, MutableVector (A.liftMutable arr) #)
   )
 
